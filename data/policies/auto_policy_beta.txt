@@ -1,0 +1,15 @@
+AUTO POLICY BETA — SYNTHETIC DEMO POLICY
+Policy number: AUTO-BETA-001
+Effective period: 01 January 2026 to 31 December 2026
+
+COLLISION COVER
+We cover accidental collision damage to the insured vehicle when the vehicle is used for ordinary personal transportation, subject to the policy excess and limits.
+
+RACING AND COMPETITIVE USE
+Damage occurring while the vehicle is being used for racing, timed competition, track events, or other competitive driving is not covered.
+
+COSMETIC DAMAGE
+Minor cosmetic damage that does not affect the vehicle's function may be excluded from collision coverage depending on the applicable repair assessment and policy excess.
+
+GENERAL CONDITIONS
+The insured must provide reasonable evidence of the incident and cooperate with the claims investigation.
