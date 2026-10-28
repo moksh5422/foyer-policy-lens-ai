@@ -1,0 +1,42 @@
+[
+  {
+    "id": "home-01",
+    "question": "Is accidental water damage caused by a burst pipe covered?",
+    "expected_decision": "COVERED"
+  },
+  {
+    "id": "home-02",
+    "question": "Is damage caused by gradual seepage covered?",
+    "expected_decision": "NOT COVERED"
+  },
+  {
+    "id": "home-03",
+    "question": "Is theft of a permanently installed home appliance covered?",
+    "expected_decision": "COVERED"
+  },
+  {
+    "id": "home-04",
+    "question": "Is theft of property left in an unsecured external area covered?",
+    "expected_decision": "NOT COVERED"
+  },
+  {
+    "id": "auto-01",
+    "question": "Is accidental collision damage during ordinary personal transportation covered?",
+    "expected_decision": "COVERED"
+  },
+  {
+    "id": "auto-02",
+    "question": "Is a vehicle used in racing covered for collision damage?",
+    "expected_decision": "NOT COVERED"
+  },
+  {
+    "id": "auto-03",
+    "question": "Is minor cosmetic damage automatically covered?",
+    "expected_decision": "CONDITIONAL"
+  },
+  {
+    "id": "unknown-01",
+    "question": "Is damage caused by an earthquake covered?",
+    "expected_decision": "UNCLEAR"
+  }
+]
