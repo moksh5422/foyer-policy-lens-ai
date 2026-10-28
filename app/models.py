@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Optional
 
 @dataclass
@@ -9,15 +9,6 @@ class DocumentChunk:
     page: Optional[int] = None
     section: Optional[str] = None
 
-    def to_dict(self):
-        return asdict(self)
-
-@dataclass
-class ClaimInput:
-    description: str
-    amount: Optional[float] = None
-    policy_number: Optional[str] = None
-
 @dataclass
 class Evidence:
     text: str
@@ -25,12 +16,31 @@ class Evidence:
     score: float
     page: Optional[int] = None
     section: Optional[str] = None
+    chunk_id: str = ""
 
 @dataclass
 class Assessment:
-    outcome: str
+    decision: str
     summary: str
     reasoning: str
     evidence: list[Evidence]
     questions_for_claimant: list[str]
-    disclaimer: str = "Demo assessment only; a qualified claims professional must make the final decision."
+    disclaimer: str = "Demo decision-support only. A qualified claims professional must make the final determination."
+    conditions: list[str] = None
+    exclusions: list[str] = None
+
+    def __post_init__(self):
+        self.conditions = self.conditions or []
+        self.exclusions = self.exclusions or []
+
+    def to_dict(self):
+        return {
+            "decision": self.decision,
+            "summary": self.summary,
+            "reasoning": self.reasoning,
+            "evidence": [asdict(item) for item in self.evidence],
+            "questions_for_claimant": self.questions_for_claimant,
+            "conditions": self.conditions,
+            "exclusions": self.exclusions,
+            "disclaimer": self.disclaimer,
+        }
