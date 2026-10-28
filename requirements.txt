@@ -1,0 +1,12 @@
+streamlit
+langchain
+pandas
+openpyxl
+python-docx
+python-pptx
+pypdf
+pytest
+fastapi
+uvicorn
+python-dotenv
+scikit-learn
