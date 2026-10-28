@@ -40,8 +40,7 @@ def _sentence_relevance(question, sentence):
             "cosmetic": {"cosmetic", "damage", "repair", "collision"},
             "earthquake": {"earthquake", "seismic"},
         }[topic]
-        topic_overlap = len(swords & topic_words)
-        return topic_overlap * 2 + overlap * 0.05
+        return len(swords & topic_words) * 2 + overlap * 0.05
     return overlap
 
 def _rule_assessment(question, evidence):
