@@ -5,7 +5,7 @@ from app.pipeline import PolicyLensPipeline
 
 st.set_page_config(page_title="Policy Lens AI", page_icon="🛡️", layout="wide")
 st.title("🛡️ Policy Lens AI")
-st.caption("Evidence-first insurance policy assistant. Uses synthetic demo policies; not claims or legal advice.")
+st.caption("Evidence-first insurance policy assistant. Synthetic demo only; not claims or legal advice.")
 
 with st.sidebar:
     st.header("Policy documents")
@@ -13,16 +13,10 @@ with st.sidebar:
     top_k = st.slider("Evidence chunks", 2, 8, 5)
     use_llm = st.checkbox("Use optional OpenAI reasoning", value=False)
     model = st.text_input("OpenAI model", value=os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
-    st.caption("Keep secrets out of uploads and never upload real customer data to this demo.")
+    st.caption("Do not upload real customer data to this demonstration.")
 
 if uploaded:
-    # UploadedFile objects are handled in memory/temp storage by the ingestion layer.
-    from app.ingestion import ingest_file, chunk_document
-    docs = []
-    for f in uploaded:
-        docs.extend(ingest_file(f))
-    from app.pipeline import PolicyLensPipeline
-    pipeline = PolicyLensPipeline(chunk_document(docs))
+    pipeline = PolicyLensPipeline.from_uploads(uploaded)
 else:
     demo_dir = Path("data/policies")
     pipeline = PolicyLensPipeline.from_paths([str(p) for p in sorted(demo_dir.iterdir()) if p.is_file()])
@@ -62,4 +56,4 @@ if st.button("Assess coverage", type="primary"):
     st.caption(result.disclaimer)
 
 st.divider()
-st.caption("Built as a portfolio demonstration. Outcomes should be reviewed by an appropriately qualified human before any real-world use.")
+st.caption("This is a decision-support prototype. Outcomes should be reviewed by an appropriately qualified human before real-world use.")
