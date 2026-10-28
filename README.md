@@ -1,18 +1,18 @@
-# Foyer Policy Lens AI
+# Policy Lens AI — Insurance Claim Coverage Assistant
 
-An evidence-grounded insurance policy coverage assistant built as a demonstration project for AI engineering recruitment. It retrieves relevant policy clauses, produces a coverage assessment, cites supporting evidence, and explicitly flags ambiguity rather than inventing certainty.
+A Foyer-inspired portfolio project demonstrating an end-to-end AI workflow for insurance policy analysis. It ingests synthetic policy documents, retrieves relevant evidence, assesses a question against that evidence, cites the clauses used, and explicitly handles uncertainty.
 
-> Demo only. Uses synthetic policy documents and is not insurance, legal, or claims advice.
+> **Demo only.** Uses synthetic policies and is not insurance, legal, or claims advice.
 
 ## Features
 
-- Ingests PDF, DOCX, XLSX, PPTX, TXT, and Markdown policy documents.
-- Hybrid-style local retrieval using lexical matching and TF-IDF cosine similarity.
-- Coverage outcomes: `COVERED`, `NOT COVERED`, `CONDITIONAL`, or `UNCLEAR`.
-- Evidence snippets with document/page/section metadata where available.
-- Streamlit user interface and FastAPI endpoint.
-- Evaluation cases, automated tests, Docker Compose, and GitHub Actions CI.
-- Optional OpenAI-backed structured assessment; deterministic local fallback.
+- Multi-format ingestion: PDF, Word, Excel, PowerPoint, TXT and Markdown.
+- Local lexical + TF-IDF retrieval (hybrid-style retrieval baseline).
+- Bounded outcomes: `COVERED`, `NOT COVERED`, `CONDITIONAL`, `UNCLEAR`.
+- Evidence snippets and source identifiers.
+- Streamlit UI and FastAPI endpoint.
+- Optional OpenAI structured-reasoning path with a deterministic local fallback.
+- Evaluation cases, unit tests, Docker Compose and GitHub Actions CI.
 
 ## Run locally
 
@@ -24,57 +24,47 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-In another terminal, run the API:
+Run the API in another terminal:
 
 ```bash
 uvicorn api:app --reload --port 8000
 ```
 
-Optional model configuration: copy `.env.example` to `.env` and configure your OpenAI API key and model. Do not commit secrets.
+- UI: http://localhost:8501
+- API health: http://localhost:8000/health
+- API docs: http://localhost:8000/docs
 
-## Docker
+## Optional OpenAI reasoning
+
+Copy `.env.example` to `.env`, set `OPENAI_API_KEY`, and start the app from an environment where these variables are loaded. Never commit secrets. The local assessment remains available without an API key.
+
+## Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-## Evaluate and test
+## Tests and evaluation
 
 ```bash
-python run_evaluation.py
 pytest -q
+python run_evaluation.py
 ```
 
-The included evaluation set is deliberately small and synthetic; scores describe only those cases and are not a claim of real-world insurance performance.
-
-## Repository layout
-
-```text
-app/                    ingestion, retrieval, decision, pipeline, evaluation
-app.py                  Streamlit interface
-api.py                  FastAPI service
- data/policies/          synthetic demo policies
-data/evaluation/        evaluation questions and expected outcomes
-data/demo_claim.json    sample claim
- tests/                  automated tests
-docs/                   architecture and evaluation notes
-.github/workflows/       CI workflow
-```
+The included benchmark contains eight synthetic cases and is a smoke test only. Its accuracy is not a claim about real-world insurance performance. Production usage would require a broader, human-labelled evaluation set and expert review.
 
 ## Architecture
 
-1. Extract text and metadata from uploaded policy documents.
-2. Split content into retrievable chunks while preserving document references.
-3. Retrieve relevant clauses with local lexical and TF-IDF matching.
-4. Assess the claim against evidence and return a bounded outcome with citations.
-5. Ask for human review when evidence is incomplete or conflicting.
+1. Extract text from policy files and preserve source metadata.
+2. Split document text into retrievable chunks.
+3. Retrieve relevant evidence using lexical overlap and TF-IDF cosine similarity.
+4. Assess only against retrieved evidence.
+5. Return a bounded decision, reasoning, evidence references, and review steps.
 
-See [`docs/architecture.md`](docs/architecture.md) and [`docs/evaluation.md`](docs/evaluation.md).
+See [architecture](docs/architecture.md) and [evaluation](docs/evaluation.md).
 
-## Production considerations
+## Production evolution
 
-For a production setting, replace local retrieval with a managed hybrid search service such as Azure AI Search, add authenticated access and per-policy authorization, enforce PII minimisation/retention, monitor retrieval and answer quality, expand evaluation with expert-labelled cases, and route ambiguous or high-impact decisions to a qualified human reviewer.
+A production version could use managed hybrid search (for example Azure AI Search), document-level authorization, policy version/effective-date filtering, PII controls, audit and tracing, expert-labelled evaluation, monitoring, and human-in-the-loop review for unclear or high-impact decisions.
 
-## License
-
-This repository is provided for demonstration and learning. Add an explicit license before reuse or redistribution.
+No Foyer confidential or internal data is included; the example policies are synthetic.
