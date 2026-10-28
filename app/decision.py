@@ -64,10 +64,13 @@ def _rule_assessment(question, evidence):
 
     conditional_rows = [x for x in rows if any(p in x[3].lower() for p in ("depending on", "may be excluded", "subject to the policy excess"))]
     exclusions = [x for x in rows if any(p in x[3].lower() for p in ("not covered", "excluded", "does not cover", "exclusion applies"))]
+    # Coverage grants are recognised only when the clause is a direct grant,
+    # not merely because it mentions an event that appears elsewhere.
     covered = [x for x in rows if (
-        any(p in x[3].lower() for p in ("we cover", "is covered", "are covered", "coverage applies", "covers sudden"))
-        or (topic == "appliance_theft" and "we cover theft" in x[3].lower())
-        or (topic == "collision" and "we cover accidental collision damage" in x[3].lower())
+        "we cover" in x[3].lower()
+        or "is covered" in x[3].lower()
+        or "are covered" in x[3].lower()
+        or "coverage applies" in x[3].lower()
     ) and not any(p in x[3].lower() for p in ("not covered", "does not cover", "not insured"))]
     best_exclusion = max(exclusions, key=lambda x: (x[0], x[1]), default=None)
     best_covered = max(covered, key=lambda x: (x[0], x[1]), default=None)
