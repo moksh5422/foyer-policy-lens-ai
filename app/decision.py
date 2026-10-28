@@ -72,6 +72,8 @@ def _rule_assessment(question, evidence):
     best_exclusion = max(exclusions, key=lambda x: (x[0], x[1]), default=None)
     best_covered = max(covered, key=lambda x: (x[0], x[1]), default=None)
 
+    # If an exclusion and a coverage grant both match, require a strong topic
+    # match before treating the exclusion as controlling.
     if topic == "cosmetic" and conditional_rows:
         decision, reason = "CONDITIONAL", conditional_rows[0][3]
     elif best_exclusion and (not best_covered or best_exclusion[0] >= best_covered[0] or topic in {"water_gradual", "external_theft", "racing"}):
