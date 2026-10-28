@@ -76,7 +76,8 @@ def chunk_document(documents: Iterable[dict], chunk_size: int = 1100, overlap: i
             elif len(current) + len(para) + 2 <= chunk_size:
                 current = f"{current}\n\n{para}".strip()
             else:
-                chunks.append(DocumentChunk(current, doc["source"], doc["document_id"]))
+                if current:
+                    chunks.append(DocumentChunk(current, doc["source"], doc["document_id"]))
                 current = para
         if current:
             chunks.append(DocumentChunk(current, doc["source"], doc["document_id"]))
