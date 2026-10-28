@@ -18,4 +18,4 @@ def test_conditional_cosmetic_clause():
 
 def test_empty_question_is_unclear():
     pipeline = build_pipeline()
-    assert pipeline.answer("").decision == "UNCLEAR"
+    assert build_pipeline().answer("").decision == "UNCLEAR"
