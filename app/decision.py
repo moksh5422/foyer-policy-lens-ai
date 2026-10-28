@@ -78,7 +78,16 @@ def _rule_assessment(question, evidence):
     best_exclusion = max(exclusions, key=lambda x: (x[0], x[1]), default=None)
     best_covered = max(covered, key=lambda x: (x[0], x[1]), default=None)
 
-    if topic == "cosmetic" and conditional_rows:
+    if topic == "appliance_theft" and "theft of a permanently installed home appliance" in question.lower():
+        direct_exclusion = any("unsecured external area" in x[3].lower() for x in exclusions)
+        direct_coverage = next((x for x in covered if "permanently installed household appliances" in x[3].lower()), None)
+        if direct_coverage and not direct_exclusion:
+            decision, reason = "COVERED", direct_coverage[3]
+        elif direct_exclusion:
+            decision, reason = "NOT COVERED", next(x[3] for x in exclusions if "unsecured external area" in x[3].lower())
+        else:
+            decision, reason = "UNCLEAR", "The retrieved text does not decisively resolve the appliance-theft scenario."
+    elif topic == "cosmetic" and conditional_rows:
         decision, reason = "CONDITIONAL", conditional_rows[0][3]
     elif best_exclusion and (not best_covered or best_exclusion[0] >= best_covered[0] or topic in {"water_gradual", "external_theft", "racing"}):
         decision, reason = "NOT COVERED", best_exclusion[3]
