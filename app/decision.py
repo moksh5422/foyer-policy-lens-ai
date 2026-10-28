@@ -102,8 +102,23 @@ def _rule_assessment(question, evidence):
             decision, reason = "UNCLEAR", "The retrieved text does not decisively resolve the burst-pipe scenario."
     elif topic == "cosmetic" and conditional_rows:
         decision, reason = "CONDITIONAL", conditional_rows[0][3]
-    elif best_exclusion and (not best_covered or best_exclusion[0] >= best_covered[0] or topic in {"water_gradual", "external_theft", "racing"}):
+    elif best_exclusion and (
+        not best_covered
+        or best_exclusion[0] >= best_covered[0]
+        or topic in {"water_gradual", "external_theft", "racing"}
+    ):
         decision, reason = "NOT COVERED", best_exclusion[3]
+    elif topic == "collision":
+        direct_collision = next((x for x in covered if "collision damage" in x[3].lower() and "ordinary personal transportation" in x[3].lower()), None)
+        direct_racing_exclusion = next((x for x in exclusions if any(word in x[3].lower() for word in ("racing", "track events", "competitive driving"))), None)
+        if direct_collision and "racing" not in question.lower() and "track" not in question.lower():
+            decision, reason = "COVERED", direct_collision[3]
+        elif direct_racing_exclusion:
+            decision, reason = "NOT COVERED", direct_racing_exclusion[3]
+        elif best_covered:
+            decision, reason = "COVERED", best_covered[3]
+        else:
+            return _unclear(evidence, "The retrieved text does not decisively resolve the collision scenario.")
     elif best_covered:
         decision, reason = "COVERED", best_covered[3]
     else:
