@@ -1,4 +1,3 @@
-from pathlib import Path
 from .ingestion import ingest_file, chunk_document
 from .retrieval import HybridRetriever
 from .decision import assess
@@ -14,6 +13,13 @@ class PolicyLensPipeline:
         documents = []
         for path in paths:
             documents.extend(ingest_file(path))
+        return cls(chunk_document(documents))
+
+    @classmethod
+    def from_uploads(cls, uploads):
+        documents = []
+        for upload in uploads:
+            documents.extend(ingest_file(upload))
         return cls(chunk_document(documents))
 
     def answer(self, question: str, top_k: int = 5, use_llm: bool = False, model: str = "gpt-4o-mini") -> Assessment:
