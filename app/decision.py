@@ -46,19 +46,25 @@ def _sentence_relevance(question, sentence):
 def _rule_assessment(question, evidence):
     if not question.strip() or not evidence:
         return Assessment("UNCLEAR", "The available policy text does not establish whether this scenario is covered.", "No sufficiently relevant policy evidence was available. A claims reviewer should check the complete policy wording and endorsements.", evidence[:3], ["Confirm the policy number, version and date of loss.", "Ask a claims reviewer to inspect the complete policy and endorsements."], DISCLAIMER)
+    topic = _topic(question)
+    if topic == "earthquake":
+        directly_relevant = [ev for ev in evidence if "earthquake" in ev.text.lower() or "seismic" in ev.text.lower()]
+        if not directly_relevant:
+            return Assessment("UNCLEAR", "The supplied policy documents do not establish whether earthquake damage is covered.", "No earthquake-specific coverage or exclusion clause was found in the supplied policy text. The absence of a clause in this demo corpus is not proof of coverage or non-coverage.", evidence[:3], ["Check the complete policy wording and any endorsements for earthquake or earth-movement provisions.", "Escalate to a claims reviewer."], DISCLAIMER)
+
     rows = []
     for ev in evidence:
         for sentence in re.split(r"(?<=[.!?])\s+|\n+", ev.text):
             sentence = sentence.strip()
-            if sentence:
-                relevance = _sentence_relevance(question, sentence)
-                if relevance > 0:
-                    rows.append((relevance, ev.score, ev, sentence))
+            if not sentence:
+                continue
+            relevance = _sentence_relevance(question, sentence)
+            if relevance > 0:
+                rows.append((relevance, ev.score, ev, sentence))
     rows.sort(key=lambda x: (x[0], x[1]), reverse=True)
     if not rows:
         return Assessment("UNCLEAR", "The available policy text does not establish whether this scenario is covered.", "No directly relevant clause was found in the retrieved evidence.", evidence[:3], ["Confirm the policy version and effective dates.", "Escalate the question for human review."], DISCLAIMER)
 
-    topic = _topic(question)
     specific_exclusion_topics = {"water_gradual", "external_theft", "racing"}
     conditional_rows = [x for x in rows if any(p in x[3].lower() for p in ("depending on", "may be excluded", "subject to the policy excess"))]
     exclusions = [x for x in rows if any(p in x[3].lower() for p in ("not covered", "excluded", "does not cover", "exclusion applies"))]
