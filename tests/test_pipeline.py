@@ -14,8 +14,12 @@ def test_coverage_and_exclusion():
 
 def test_conditional_cosmetic_clause():
     pipeline = build_pipeline()
-    assert pipeline.answer("Is minor cosmetic damage automatically covered?").decision == "CONDITIONAL"
+    assert build_pipeline().answer("Is minor cosmetic damage automatically covered?").decision == "CONDITIONAL"
+
+def test_installed_appliance_theft():
+    pipeline = build_pipeline()
+    assert build_pipeline().answer("Is theft of a permanently installed home appliance covered?").decision == "COVERED"
 
 def test_empty_question_is_unclear():
     pipeline = build_pipeline()
-    assert build_pipeline().answer("").decision == "UNCLEAR"
+    assert pipeline.answer("").decision == "UNCLEAR"
