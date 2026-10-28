@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import streamlit as st
 from app.pipeline import PolicyLensPipeline
+from app.ingestion import ingest_file, chunk_document
 
 st.set_page_config(page_title="Policy Lens AI", page_icon="🛡️", layout="wide")
 st.title("🛡️ Policy Lens AI")
