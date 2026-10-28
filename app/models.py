@@ -26,8 +26,8 @@ class Assessment:
     evidence: list[Evidence]
     questions_for_claimant: list[str]
     disclaimer: str = "Demo decision-support only. A qualified claims professional must make the final determination."
-    conditions: list[str] = None
-    exclusions: list[str] = None
+    conditions: Optional[list[str]] = None
+    exclusions: Optional[list[str]] = None
 
     def __post_init__(self):
         self.conditions = self.conditions or []
