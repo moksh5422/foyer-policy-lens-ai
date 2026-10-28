@@ -88,18 +88,11 @@ def _rule_assessment(question, evidence):
         else:
             decision, reason = "UNCLEAR", "The retrieved text does not decisively resolve the appliance-theft scenario."
     elif topic == "water_burst":
-        direct_exclusion = any(
-            "water" in x[3].lower() and "not covered" in x[3].lower()
-            and any(word in x[3].lower() for word in ("burst", "sudden", "pipe", "plumbing"))
-            for x in exclusions
-        )
-        direct_coverage = next((x for x in covered if "burst pipe" in x[3].lower() or "sudden and accidental escape of water" in x[3].lower()), None)
-        if direct_coverage and not direct_exclusion:
+        direct_coverage = next((x for x in covered if "sudden and accidental escape of water" in x[3].lower() or "burst pipe" in x[3].lower()), None)
+        if direct_coverage:
             decision, reason = "COVERED", direct_coverage[3]
-        elif direct_exclusion:
-            decision, reason = "NOT COVERED", next(x[3] for x in exclusions if "water" in x[3].lower() and "not covered" in x[3].lower() and any(word in x[3].lower() for word in ("burst", "sudden", "pipe", "plumbing")))
         else:
-            decision, reason = "UNCLEAR", "The retrieved text does not decisively resolve the burst-pipe scenario."
+            return _unclear(evidence, "No directly relevant coverage grant for sudden water escape or burst-pipe damage was found.")
     elif topic == "external_theft":
         direct = next((x for x in exclusions if "unsecured external area" in x[3].lower()), None)
         if direct:
