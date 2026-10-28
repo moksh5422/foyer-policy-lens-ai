@@ -48,9 +48,7 @@ def _rule_assessment(question, evidence):
     if not question.strip() or not evidence:
         return _unclear(evidence, "No sufficiently relevant policy evidence was available.")
     topic = _topic(question)
-    # The corpus contains no affirmative earthquake clause. Never infer that
-    # an unmentioned risk is automatically covered or excluded.
-    if topic == "earthquake" and not any("earthquake" in e.text.lower() or "seismic" in e.text.lower() for e in evidence):
+    if topic == "earthquake" and not any("earthquake" in ev.text.lower() or "seismic" in ev.text.lower() for ev in evidence):
         return _unclear(evidence, "No earthquake-specific coverage or exclusion clause was found in the supplied policy text.")
 
     rows = []
