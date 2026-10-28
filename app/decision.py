@@ -71,6 +71,9 @@ def _rule_assessment(question, evidence):
         or "is covered" in x[3].lower()
         or "are covered" in x[3].lower()
         or "coverage applies" in x[3].lower()
+        or (topic == "water_burst" and "we cover sudden and accidental escape of water" in x[3].lower())
+        or (topic == "appliance_theft" and "we cover theft of permanently installed household appliances" in x[3].lower())
+        or (topic == "collision" and "we cover accidental collision damage" in x[3].lower())
     ) and not any(p in x[3].lower() for p in ("not covered", "does not cover", "not insured"))]
     best_exclusion = max(exclusions, key=lambda x: (x[0], x[1]), default=None)
     best_covered = max(covered, key=lambda x: (x[0], x[1]), default=None)
