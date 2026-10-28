@@ -100,6 +100,24 @@ def _rule_assessment(question, evidence):
             decision, reason = "NOT COVERED", next(x[3] for x in exclusions if "water" in x[3].lower() and "not covered" in x[3].lower() and any(word in x[3].lower() for word in ("burst", "sudden", "pipe", "plumbing")))
         else:
             decision, reason = "UNCLEAR", "The retrieved text does not decisively resolve the burst-pipe scenario."
+    elif topic == "external_theft":
+        direct = next((x for x in exclusions if "unsecured external area" in x[3].lower()), None)
+        if direct:
+            decision, reason = "NOT COVERED", direct[3]
+        else:
+            return _unclear(evidence, "No directly relevant exclusion for unsecured external property was found.")
+    elif topic == "water_gradual":
+        direct = next((x for x in exclusions if any(word in x[3].lower() for word in ("gradual seepage", "repeated leakage", "long-term deterioration"))), None)
+        if direct:
+            decision, reason = "NOT COVERED", direct[3]
+        else:
+            return _unclear(evidence, "No directly relevant gradual-water-damage exclusion was found.")
+    elif topic == "racing":
+        direct = next((x for x in exclusions if any(word in x[3].lower() for word in ("racing", "track events", "competitive driving"))), None)
+        if direct:
+            decision, reason = "NOT COVERED", direct[3]
+        else:
+            return _unclear(evidence, "No racing-specific exclusion was found.")
     elif topic == "cosmetic" and conditional_rows:
         decision, reason = "CONDITIONAL", conditional_rows[0][3]
     elif best_exclusion and (
