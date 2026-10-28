@@ -4,7 +4,6 @@ import re
 from .models import Evidence, Assessment
 
 DISCLAIMER = "Demo decision-support only. A qualified claims professional must make the final determination."
-STOP = {"is", "my", "the", "a", "an", "does", "do", "this", "that", "claim", "covered", "coverage", "under", "policy", "for", "to", "during", "by", "with", "what", "are", "was", "were"}
 TOPICS = {
     "water_burst": ["burst pipe", "burst", "sudden plumbing", "escape of water"],
     "water_gradual": ["gradual seepage", "gradual", "repeated leakage", "long-term deterioration", "lack of maintenance"],
@@ -35,61 +34,59 @@ def _topic(question):
     return matches[0] if len(matches) == 1 else None
 
 def _sentence_relevance(question, sentence):
-    qwords = _words(question) - STOP
+    qwords = _words(question) - {"is", "my", "the", "a", "an", "does", "do", "this", "that", "claim", "covered", "coverage", "under", "policy", "for", "to", "during", "by", "with", "what", "are", "was", "were"}
     swords = _words(sentence)
-    overlap = len(qwords & swords)
     topic = _topic(question)
     if topic:
-        return len(swords & TOPIC_WORDS[topic]) * 2 + overlap * 0.05
-    return overlap
+        return len(swords & TOPIC_WORDS[topic]) * 2 + len(qwords & swords) * 0.05
+    return len(qwords & swords)
+
+def _unclear(evidence, reason):
+    return Assessment("UNCLEAR", "The available policy evidence does not establish whether this scenario is covered.", reason, evidence[:3], ["Check the complete policy wording and any endorsements.", "Escalate to a qualified claims reviewer."], DISCLAIMER)
 
 def _rule_assessment(question, evidence):
     if not question.strip() or not evidence:
-        return Assessment("UNCLEAR", "The available policy text does not establish whether this scenario is covered.", "No sufficiently relevant policy evidence was available. A claims reviewer should check the complete policy wording and endorsements.", evidence[:3], ["Confirm the policy number, version and date of loss.", "Ask a claims reviewer to inspect the complete policy and endorsements."], DISCLAIMER)
-    if _topic(question) == "earthquake":
-        directly_relevant = [ev for ev in evidence if "earthquake" in ev.text.lower() or "seismic" in ev.text.lower()]
-        if not directly_relevant:
-            return Assessment("UNCLEAR", "The supplied policy documents do not establish whether earthquake damage is covered.", "No earthquake-specific coverage or exclusion clause was found in the supplied policy text. The absence of a clause in this demo corpus is not proof of coverage or non-coverage.", evidence[:3], ["Check the complete policy wording and any endorsements for earthquake or earth-movement provisions.", "Escalate to a claims reviewer."], DISCLAIMER)
+        return _unclear(evidence, "No sufficiently relevant policy evidence was available.")
     topic = _topic(question)
-    if topic == "earthquake":
-        directly_relevant = [ev for ev in evidence if "earthquake" in ev.text.lower() or "seismic" in ev.text.lower()]
-        if not directly_relevant:
-            return Assessment("UNCLEAR", "The supplied policy documents do not establish whether earthquake damage is covered.", "No earthquake-specific coverage or exclusion clause was found in the supplied policy text. The absence of a clause in this demo corpus is not proof of coverage or non-coverage.", evidence[:3], ["Check the complete policy wording and any endorsements for earthquake or earth-movement provisions.", "Escalate to a claims reviewer."], DISCLAIMER)
+    # The corpus contains no affirmative earthquake clause. Never infer that
+    # an unmentioned risk is automatically covered or excluded.
+    if topic == "earthquake" and not any("earthquake" in e.text.lower() or "seismic" in e.text.lower() for e in evidence):
+        return _unclear(evidence, "No earthquake-specific coverage or exclusion clause was found in the supplied policy text.")
 
     rows = []
     for ev in evidence:
         for sentence in re.split(r"(?<=[.!?])\s+|\n+", ev.text):
             sentence = sentence.strip()
-            if not sentence:
-                continue
-            relevance = _sentence_relevance(question, sentence)
-            if relevance > 0:
-                rows.append((relevance, ev.score, ev, sentence))
+            score = _sentence_relevance(question, sentence) if sentence else 0
+            if score > 0:
+                rows.append((score, ev.score, ev, sentence))
     rows.sort(key=lambda x: (x[0], x[1]), reverse=True)
     if not rows:
-        return Assessment("UNCLEAR", "The available policy text does not establish whether this scenario is covered.", "No directly relevant clause was found in the retrieved evidence.", evidence[:3], ["Confirm the policy version and effective dates.", "Escalate the question for human review."], DISCLAIMER)
+        return _unclear(evidence, "No directly relevant clause was found in the retrieved evidence.")
 
-    specific_exclusion_topics = {"water_gradual", "external_theft", "racing"}
     conditional_rows = [x for x in rows if any(p in x[3].lower() for p in ("depending on", "may be excluded", "subject to the policy excess"))]
     exclusions = [x for x in rows if any(p in x[3].lower() for p in ("not covered", "excluded", "does not cover", "exclusion applies"))]
-    covered = [x for x in rows if (any(p in x[3].lower() for p in ("we cover", "is covered", "are covered", "coverage applies", "covers sudden", "cover theft of permanently installed", "cover accidental collision damage")) or ("we cover" in x[3].lower() and "not covered" not in x[3].lower())) and not any(p in x[3].lower() for p in ("not covered", "does not cover", "not insured"))]
+    covered = [x for x in rows if (
+        any(p in x[3].lower() for p in ("we cover", "is covered", "are covered", "coverage applies", "covers sudden"))
+        or (topic == "appliance_theft" and "we cover theft" in x[3].lower())
+        or (topic == "collision" and "we cover accidental collision damage" in x[3].lower())
+    ) and not any(p in x[3].lower() for p in ("not covered", "does not cover", "not insured"))]
     best_exclusion = max(exclusions, key=lambda x: (x[0], x[1]), default=None)
     best_covered = max(covered, key=lambda x: (x[0], x[1]), default=None)
 
     if topic == "cosmetic" and conditional_rows:
         decision, reason = "CONDITIONAL", conditional_rows[0][3]
-    elif best_exclusion and (not best_covered or best_exclusion[0] >= best_covered[0] or topic in specific_exclusion_topics):
+    elif best_exclusion and (not best_covered or best_exclusion[0] >= best_covered[0] or topic in {"water_gradual", "external_theft", "racing"}):
         decision, reason = "NOT COVERED", best_exclusion[3]
     elif best_covered:
         decision, reason = "COVERED", best_covered[3]
     else:
-        decision, reason = "UNCLEAR", "The retrieved text does not contain a decisive clause for the described loss."
+        return _unclear(evidence, "The retrieved text does not contain a decisive clause for the described loss.")
 
     summary = {
         "COVERED": "The retrieved policy evidence indicates that the described event is covered, subject to policy terms.",
         "NOT COVERED": "The retrieved policy evidence indicates that an exclusion applies to the described event.",
         "CONDITIONAL": "Coverage depends on policy wording or claim facts that should be verified.",
-        "UNCLEAR": "The retrieved evidence is insufficient to determine coverage reliably.",
     }[decision]
     conditions = [x[3] for x in conditional_rows[:3]]
     exclusion_text = [x[3] for x in exclusions[:3]] if decision == "NOT COVERED" else []
