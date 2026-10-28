@@ -46,6 +46,10 @@ def _sentence_relevance(question, sentence):
 def _rule_assessment(question, evidence):
     if not question.strip() or not evidence:
         return Assessment("UNCLEAR", "The available policy text does not establish whether this scenario is covered.", "No sufficiently relevant policy evidence was available. A claims reviewer should check the complete policy wording and endorsements.", evidence[:3], ["Confirm the policy number, version and date of loss.", "Ask a claims reviewer to inspect the complete policy and endorsements."], DISCLAIMER)
+    if _topic(question) == "earthquake":
+        directly_relevant = [ev for ev in evidence if "earthquake" in ev.text.lower() or "seismic" in ev.text.lower()]
+        if not directly_relevant:
+            return Assessment("UNCLEAR", "The supplied policy documents do not establish whether earthquake damage is covered.", "No earthquake-specific coverage or exclusion clause was found in the supplied policy text. The absence of a clause in this demo corpus is not proof of coverage or non-coverage.", evidence[:3], ["Check the complete policy wording and any endorsements for earthquake or earth-movement provisions.", "Escalate to a claims reviewer."], DISCLAIMER)
     topic = _topic(question)
     if topic == "earthquake":
         directly_relevant = [ev for ev in evidence if "earthquake" in ev.text.lower() or "seismic" in ev.text.lower()]
