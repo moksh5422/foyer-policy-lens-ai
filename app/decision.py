@@ -6,14 +6,24 @@ from .models import Evidence, Assessment
 DISCLAIMER = "Demo decision-support only. A qualified claims professional must make the final determination."
 STOP = {"is", "my", "the", "a", "an", "does", "do", "this", "that", "claim", "covered", "coverage", "under", "policy", "for", "to", "during", "by", "with", "what", "are", "was", "were"}
 TOPICS = {
-    "water_burst": {"burst pipe", "burst", "sudden plumbing", "escape of water"},
-    "water_gradual": {"gradual seepage", "gradual", "repeated leakage", "long-term deterioration", "lack of maintenance"},
-    "appliance_theft": {"permanently installed", "household appliance", "appliance theft"},
-    "external_theft": {"unsecured external", "external area", "property left outside"},
-    "collision": {"collision", "vehicle collision"},
-    "racing": {"racing", "track event", "timed competition", "competitive driving"},
-    "cosmetic": {"cosmetic damage", "minor cosmetic"},
-    "earthquake": {"earthquake"},
+    "water_burst": ["burst pipe", "burst", "sudden plumbing", "escape of water"],
+    "water_gradual": ["gradual seepage", "gradual", "repeated leakage", "long-term deterioration", "lack of maintenance"],
+    "appliance_theft": ["permanently installed", "household appliance", "appliance theft"],
+    "external_theft": ["unsecured external", "external area", "property left outside"],
+    "collision": ["collision", "vehicle collision"],
+    "racing": ["racing", "track event", "timed competition", "competitive driving"],
+    "cosmetic": ["cosmetic damage", "minor cosmetic"],
+    "earthquake": ["earthquake"],
+}
+TOPIC_WORDS = {
+    "water_burst": {"burst", "pipe", "sudden", "plumbing", "water", "escape"},
+    "water_gradual": {"gradual", "seepage", "leakage", "maintenance", "deterioration"},
+    "appliance_theft": {"appliance", "installed", "theft", "forcible"},
+    "external_theft": {"external", "unsecured", "theft", "property"},
+    "collision": {"collision", "vehicle", "transportation"},
+    "racing": {"racing", "competition", "track", "driving", "vehicle"},
+    "cosmetic": {"cosmetic", "damage", "repair", "collision"},
+    "earthquake": {"earthquake", "seismic"},
 }
 
 def _words(text):
@@ -21,8 +31,8 @@ def _words(text):
 
 def _topic(question):
     q = question.lower()
-    matched = [topic for topic, phrases in TOPICS.items() if any(p in q for p in phrases)]
-    return matched[0] if len(matched) == 1 else None
+    matches = [topic for topic, phrases in TOPICS.items() if any(phrase in q for phrase in phrases)]
+    return matches[0] if len(matches) == 1 else None
 
 def _sentence_relevance(question, sentence):
     qwords = _words(question) - STOP
@@ -30,17 +40,7 @@ def _sentence_relevance(question, sentence):
     overlap = len(qwords & swords)
     topic = _topic(question)
     if topic:
-        topic_words = {
-            "water_burst": {"burst", "pipe", "sudden", "plumbing", "water", "escape"},
-            "water_gradual": {"gradual", "seepage", "leakage", "maintenance", "deterioration"},
-            "appliance_theft": {"appliance", "installed", "theft", "forcible"},
-            "external_theft": {"external", "unsecured", "theft", "property"},
-            "collision": {"collision", "vehicle", "transportation"},
-            "racing": {"racing", "competition", "track", "driving", "vehicle"},
-            "cosmetic": {"cosmetic", "damage", "repair", "collision"},
-            "earthquake": {"earthquake", "seismic"},
-        }[topic]
-        return len(swords & topic_words) * 2 + overlap * 0.05
+        return len(swords & TOPIC_WORDS[topic]) * 2 + overlap * 0.05
     return overlap
 
 def _rule_assessment(question, evidence):
