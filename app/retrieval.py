@@ -33,13 +33,17 @@ class HybridRetriever:
                 scored.append((score, chunk))
         scored.sort(key=lambda x: x[0], reverse=True)
         results = []
-        for idx, (score, chunk) in enumerate(scored[:max(1, top_k)]):
+        for rank, (score, chunk) in enumerate(scored[:max(1, top_k)]):
+            # Stable ID tied to the source and text, not the retrieval rank,
+            # so LLM-cited IDs remain correct when evidence order changes.
+            import hashlib
+            digest = hashlib.sha1((chunk.source + "\\n" + chunk.text).encode("utf-8")).hexdigest()[:10]
             results.append(Evidence(
                 text=chunk.text,
                 source=chunk.source,
                 score=round(score, 4),
                 page=chunk.page,
                 section=chunk.section,
-                chunk_id=f"{chunk.document_id}:chunk-{idx+1}",
+                chunk_id=f"{chunk.document_id}:{digest}",
             ))
         return results
