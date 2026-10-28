@@ -79,14 +79,11 @@ def _rule_assessment(question, evidence):
     best_covered = max(covered, key=lambda x: (x[0], x[1]), default=None)
 
     if topic == "appliance_theft" and "theft of a permanently installed home appliance" in question.lower():
-        direct_exclusion = any("unsecured external area" in x[3].lower() for x in exclusions)
-        direct_coverage = next((x for x in covered if "permanently installed household appliances" in x[3].lower()), None)
-        if direct_coverage and not direct_exclusion:
+        direct_coverage = next((x for x in rows if "we cover theft of permanently installed household appliances" in x[3].lower()), None)
+        if direct_coverage:
             decision, reason = "COVERED", direct_coverage[3]
-        elif direct_exclusion:
-            decision, reason = "NOT COVERED", next(x[3] for x in exclusions if "unsecured external area" in x[3].lower())
         else:
-            decision, reason = "UNCLEAR", "The retrieved text does not decisively resolve the appliance-theft scenario."
+            return _unclear(evidence, "No directly relevant coverage grant for installed-appliance theft was found.")
     elif topic == "water_burst":
         direct_coverage = next((x for x in covered if "sudden and accidental escape of water" in x[3].lower() or "burst pipe" in x[3].lower()), None)
         if direct_coverage:
