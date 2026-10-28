@@ -68,3 +68,7 @@ See [architecture](docs/architecture.md) and [evaluation](docs/evaluation.md).
 A production version could use managed hybrid search (for example Azure AI Search), document-level authorization, policy version/effective-date filtering, PII controls, audit and tracing, expert-labelled evaluation, monitoring, and human-in-the-loop review for unclear or high-impact decisions.
 
 No Foyer confidential or internal data is included; the example policies are synthetic.
+
+## Portfolio positioning
+
+This project demonstrates an end-to-end path from a practical business problem to a modular AI application: ingestion, retrieval, evidence selection, reasoning, structured output, evaluation, UI, API, and deployment scaffolding. See [Portfolio Demonstration Notes](docs/portfolio-notes.md) for design decisions and limitations.
