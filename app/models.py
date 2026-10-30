@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Optional
 
 @dataclass
@@ -21,17 +21,25 @@ class Evidence:
 @dataclass
 class Assessment:
     decision: str
-    summary: str
-    reasoning: str
-    evidence: list[Evidence]
-    questions_for_claimant: list[str]
+    summary: str = ""
+    reasoning: str = ""
+    evidence: list[Evidence] = field(default_factory=list)
+    questions_for_claimant: list[str] = field(default_factory=list)
     disclaimer: str = "Demo decision-support only. A qualified claims professional must make the final determination."
-    conditions: Optional[list[str]] = None
-    exclusions: Optional[list[str]] = None
+    conditions: list[str] = field(default_factory=list)
+    exclusions: list[str] = field(default_factory=list)
+    confidence: Optional[float] = None
+    explanation: str = ""
+    next_steps: list[str] = field(default_factory=list)
+    trace: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        self.conditions = self.conditions or []
-        self.exclusions = self.exclusions or []
+        if not self.reasoning and self.explanation:
+            self.reasoning = self.explanation
+        if not self.questions_for_claimant and self.next_steps:
+            self.questions_for_claimant = self.next_steps
+        if not self.summary:
+            self.summary = f"Coverage assessment: {self.decision}."
 
     def to_dict(self):
         return {
@@ -42,5 +50,7 @@ class Assessment:
             "questions_for_claimant": self.questions_for_claimant,
             "conditions": self.conditions,
             "exclusions": self.exclusions,
+            "confidence": self.confidence,
+            "trace": self.trace,
             "disclaimer": self.disclaimer,
         }
